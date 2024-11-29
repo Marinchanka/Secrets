@@ -1,0 +1,48 @@
+name: Secure Vault Secrets in CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  use-vault:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Vault CLI
+      run: |
+        brew tap hashicorp/tap
+        brew install hashicorp/tap/vault
+
+    - name: Authenticate with Vault
+      env:
+        VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+        VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+      run: |
+        echo "Authenticating with Vault..."
+        export VAULT_ADDR=${{ secrets.VAULT_ADDR }}
+        export VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}
+        vault status
+
+    - name: Fetch secret securely
+      env:
+        VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+        VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+      run: |
+        echo "Fetching secret from Vault securely..."
+        export VAULT_ADDR=${{ secrets.VAULT_ADDR }}
+        export VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}
+        SECRET_VALUE=$(vault kv get -field=username secret/my-secret)
+        echo "Secret fetched."
+
+    - name: Use secret without exposing it
+      env:
+        SECRET_VALUE: ${{ secrets.SECRET_VALUE }}
+      run: |
+        echo "Using secret in the workflow without exposing it..."
+        # Пример использования: запуск скрипта или приложения с секретом
+        ./my-script.sh --user $SECRET_VALUE
