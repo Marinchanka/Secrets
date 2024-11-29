@@ -1,4 +1,4 @@
-name: Vault CI/CD Example
+name: Vault CI/CD
 
 on:
   push:
